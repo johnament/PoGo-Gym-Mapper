@@ -1,0 +1,28 @@
+{
+  "name": "pogo-gym-mapper",
+  "version": "1.0.0",
+  "description": "Discord bot to provide Google Maps links for Pokemon Go gyms",
+  "main": "app.js",
+  "dependencies": {
+    "discord.js": "^11.4.2",
+    "sqlite3": "^4.0.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rly/PoGo-Gym-Mapper.git"
+  },
+  "keywords": [
+    "pokemongo",
+    "discord"
+  ],
+  "author": "Ryan Ly",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rly/PoGo-Gym-Mapper/issues"
+  },
+  "homepage": "https://github.com/rly/PoGo-Gym-Mapper#readme"
+}
