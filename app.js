@@ -16,15 +16,7 @@ const config = require("./config.json");
 // config.prefix contains the message prefix.
 // config.gmapsApiKey contains the bot's Google Maps Static API key
 
-var isCreateChannelOn = false;
-var isAutoRaidChannelOn = false;
-var isReplaceGymHuntrBotPost = true;
-var isReplaceRaidBotPost = true;
-var isPurgeEnabled = true;
-var isMapImageEnabled = false;
-
 const gmapsUrlBase = 'https://www.google.com/maps/search/?api=1&query=';
-
 
 client.on("ready", () => {
   // This event will run if the bot starts, and logs in, successfully.
@@ -36,6 +28,10 @@ client.on("guildCreate", guild => {
   // This event triggers when the bot joins a guild.
   console.log(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
   client.user.setActivity(`on ${client.guilds.size} servers`);
+});
+
+client.on("error", error => {
+  console.log("Received an error ${error}");
 });
 
 client.on("guildDelete", guild => {
@@ -71,8 +67,8 @@ client.on("message", async message => {
   if (command === "ping") {
     // Calculates ping between sending a message and editing it, giving a nice round-trip latency.
     // The second ping is an average latency between the bot and the websocket server (one-way, not round-trip)
-    const m = await message.channel.send("Ping?");
-    m.edit(`Pong! Latency is ${m.createdTimestamp - message.createdTimestamp}ms. API Latency is ${Math.round(client.ping)}ms`);
+    const m = await message.channel.send("Testing ping...");
+    m.edit(`Pongo! Latency is ${m.createdTimestamp - message.createdTimestamp}ms. API Latency is ${Math.round(client.ping)}ms`);
   }
   
   if (command === "say") {
@@ -89,18 +85,21 @@ client.on("message", async message => {
     findGymCoords(enteredLoc, results => {
       if (results != null && results.length > 0) {
         for (row of results) {
-          message.reply(`**${row.name}**: ${gmapsUrlBase}${row.latitude},${row.longitude} ${mentionsStr}`);
+          const exRaidEmoji = client.emojis.get("408703057950408724")
+          const exRaid = row.exraid_eligible === 1 ? exRaidEmoji : ''
+          message.reply(`**${row.name}**: ${gmapsUrlBase}${row.latitude},${row.longitude} ${mentionsStr} ${exRaid}`);
         }
       } else {
         message.reply(`Sorry, I couldn't find a gym named **${enteredLoc}**. Please check that you entered the name correctly.`);
-        console.log(`Could not find gym named: ${enteredLoc}`);
+        console.log(`Could not find gym named: ${enteredLoc} ${mentionsStr}`);
       }
     });
   }
 });
 
 function findGymCoords(enteredLoc, callback) {
-  db.all('SELECT name,latitude,longitude FROM gym where name like ?', enteredLoc, 
+  const searchLoc = '%'+enteredLoc+'%';
+  db.all('SELECT DISTINCT name,latitude,longitude, exraid_eligible FROM gym g LEFT JOIN gym_aliases ga using (name) where g.name like ? or ga.alias_name like ?', searchLoc, searchLoc,
     (err, rows) => {
       if (err) {
         console.log(`Database error finding raid: ${err}`);
@@ -110,14 +109,6 @@ function findGymCoords(enteredLoc, callback) {
       }
     }
   );
-}
-
-// TODO unused
-function checkPermissionsSendMessages(message) {
-  if (!message.channel.permissionsFor(message.member).has('SEND_MESSAGES')) {
-    return false;
-  }
-  return true;
 }
 
 db.on("error", error => console.log("Database error: ", error));
